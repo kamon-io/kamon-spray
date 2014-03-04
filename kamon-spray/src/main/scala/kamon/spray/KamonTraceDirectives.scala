@@ -17,11 +17,6 @@ package kamon.spray
 
 import spray.routing.directives.BasicDirectives
 import spray.routing._
-import java.util.concurrent.atomic.AtomicLong
-import scala.util.Try
-import java.net.InetAddress
-import spray.http.HttpHeaders.RawHeader
-import shapeless.HNil
 import kamon.trace.TraceRecorder
 
 trait KamonTraceDirectives extends BasicDirectives {
