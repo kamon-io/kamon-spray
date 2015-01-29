@@ -21,8 +21,7 @@ import org.aspectj.lang.ProceedingJoinPoint
 import spray.http._
 import spray.http.HttpHeaders.RawHeader
 import kamon.trace._
-import kamon.Kamon
-import kamon.spray.{ ClientSegmentCollectionStrategy, Spray }
+import kamon.spray.{ ClientInstrumentationLevel, Spray }
 import akka.actor.ActorRef
 import scala.concurrent.{ Future, ExecutionContext }
 import akka.util.Timeout
@@ -47,10 +46,10 @@ class ClientRequestInstrumentation {
     // This read to requestContext.traceContext takes care of initializing the aspect timely.
     requestContext.traceContext
 
-    TraceRecorder.withTraceContextAndSystem { (ctx, system) ⇒
-      val sprayExtension = Kamon(Spray)(system)
+    TraceContext.map { ctx ⇒
+      val sprayExtension = ctx.lookupExtension(Spray)
 
-      if (sprayExtension.clientSegmentCollectionStrategy == ClientSegmentCollectionStrategy.Internal) {
+      if (sprayExtension.settings.clientInstrumentationLevel == ClientInstrumentationLevel.HostLevelAPI) {
         if (requestContext.segment.isEmpty) {
           val clientRequestName = sprayExtension.generateHostLevelApiSegmentName(request)
           val segment = ctx.startSegment(clientRequestName, SegmentCategory.HttpClient, Spray.SegmentLibraryName)
@@ -74,7 +73,7 @@ class ClientRequestInstrumentation {
 
   @Around("copyingRequestContext(old)")
   def aroundCopyingRequestContext(pjp: ProceedingJoinPoint, old: TraceContextAware): Any = {
-    TraceRecorder.withInlineTraceContextReplacement(old.traceContext) {
+    TraceContext.withContext(old.traceContext) {
       pjp.proceed()
     }
   }
@@ -85,7 +84,7 @@ class ClientRequestInstrumentation {
   @Around("dispatchToCommander(requestContext, message)")
   def aroundDispatchToCommander(pjp: ProceedingJoinPoint, requestContext: TraceContextAware, message: Any): Any = {
     if (requestContext.traceContext.nonEmpty) {
-      TraceRecorder.withInlineTraceContextReplacement(requestContext.traceContext) {
+      TraceContext.withContext(requestContext.traceContext) {
         if (message.isInstanceOf[HttpMessageEnd])
           requestContext.asInstanceOf[SegmentAware].segment.finish()
 
@@ -112,10 +111,10 @@ class ClientRequestInstrumentation {
     val originalSendReceive = pjp.proceed().asInstanceOf[HttpRequest ⇒ Future[HttpResponse]]
 
     (request: HttpRequest) ⇒ {
-      TraceRecorder.withTraceContextAndSystem { (ctx, system) ⇒
-        val sprayExtension = Kamon(Spray)(system)
+      TraceContext.map { ctx ⇒
+        val sprayExtension = ctx.lookupExtension(Spray)
         val segment =
-          if (sprayExtension.clientSegmentCollectionStrategy == ClientSegmentCollectionStrategy.Pipelining)
+          if (sprayExtension.settings.clientInstrumentationLevel == ClientInstrumentationLevel.RequestLevelAPI)
             ctx.startSegment(sprayExtension.generateRequestLevelApiSegmentName(request), SegmentCategory.HttpClient, Spray.SegmentLibraryName)
           else
             EmptyTraceContext.EmptySegment
@@ -139,10 +138,10 @@ class ClientRequestInstrumentation {
   @Around("includingDefaultHeadersAtHttpHostConnector(request, defaultHeaders)")
   def aroundIncludingDefaultHeadersAtHttpHostConnector(pjp: ProceedingJoinPoint, request: HttpMessage, defaultHeaders: List[HttpHeader]): Any = {
 
-    val modifiedHeaders = TraceRecorder.withTraceContextAndSystem { (ctx, system) ⇒
-      val sprayExtension = Kamon(Spray)(system)
-      if (sprayExtension.includeTraceToken)
-        RawHeader(sprayExtension.traceTokenHeaderName, ctx.token) :: defaultHeaders
+    val modifiedHeaders = TraceContext.map { ctx ⇒
+      val sprayExtension = ctx.lookupExtension(Spray)
+      if (sprayExtension.settings.includeTraceTokenHeader)
+        RawHeader(sprayExtension.settings.traceTokenHeaderName, ctx.token) :: defaultHeaders
       else
         defaultHeaders
 
