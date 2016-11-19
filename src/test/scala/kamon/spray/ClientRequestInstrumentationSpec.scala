@@ -24,11 +24,8 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 import spray.httpx.RequestBuilding
 import spray.http.{ HttpResponse, HttpRequest }
 import kamon.trace.{ Tracer, SegmentCategory }
-import com.typesafe.config.ConfigFactory
 import spray.can.Http
 import spray.http.HttpHeaders.RawHeader
-import kamon.Kamon
-import kamon.metric.TraceMetricsSpec
 import spray.client.pipelining.sendReceive
 import scala.concurrent.duration._
 
