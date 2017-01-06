@@ -25,6 +25,7 @@ import kamon.trace._
 import kamon.spray.{ SprayExtension, ClientInstrumentationLevel }
 import akka.actor.{ ActorRef, Status }
 import scala.concurrent.{ Future, ExecutionContext }
+import scala.util._
 import akka.util.Timeout
 
 @Aspect
@@ -120,7 +121,10 @@ class ClientRequestInstrumentation {
         request.asInstanceOf[SegmentAware].segment = segment
 
         val responseFuture = originalSendReceive.apply(request)
-        responseFuture.onComplete(_ ⇒ segment.finish())(SameThreadExecutionContext)
+        responseFuture.onComplete {
+          case Success(_) ⇒ segment.finish()
+          case Failure(t) ⇒ segment.finishWithError(t)
+        }(SameThreadExecutionContext)
         responseFuture
 
       } getOrElse originalSendReceive.apply(request)
