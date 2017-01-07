@@ -146,9 +146,10 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
         transport.reply(Status.Failure(new Exception("An Error Ocurred")))
         responseFuture.failed.futureValue.getMessage() should be("An Error Ocurred")
 
-        testContext.finish()
+        testContext.finishWithError(new Exception("An Error Ocurred"))
 
         val traceMetricsSnapshot = takeSnapshotOf("assign-name-to-segment-with-request-level-api", "trace")
+        traceMetricsSnapshot.counter("errors").get.count should be(1)
         traceMetricsSnapshot.histogram("elapsed-time").get.numberOfMeasurements should be(1)
 
         val segmentMetricsSnapshot = takeSnapshotOf("request-level /request-level-api-segment", "trace-segment",
