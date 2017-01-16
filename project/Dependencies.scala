@@ -23,9 +23,9 @@ object Dependencies {
   )
 
   val kamonVersion      = "0.6.3"
-  val aspectjVersion    = "1.8.9"
-  val sprayVersion      = "1.3.3"
-  val akkaVersion       = "2.3.14"
+  val aspectjVersion    = "1.8.10"
+  val sprayVersion      = "1.3.4"
+  val akkaVersion       = "2.3.16"
 
   val aspectJ           = "org.aspectj"               %   "aspectjweaver"         % aspectjVersion
 
@@ -41,7 +41,7 @@ object Dependencies {
   val akkaSlf4j         = "com.typesafe.akka"         %%  "akka-slf4j"            % akkaVersion
   val akkaTestKit       = "com.typesafe.akka"         %%  "akka-testkit"          % akkaVersion
 
-  val scalatest         = "org.scalatest"             %%  "scalatest"             % "2.2.4"
+  val scalatest         = "org.scalatest"             %%  "scalatest"             % "3.0.1"
   val logback           = "ch.qos.logback"            %   "logback-classic"       % "1.0.13"
 
   def compileScope   (deps: ModuleID*): Seq[ModuleID] = deps map (_ % "compile")
