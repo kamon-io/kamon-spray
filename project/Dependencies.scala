@@ -22,15 +22,16 @@ object Dependencies {
     "Kamon Repository Snapshots" at "http://snapshots.kamon.io"
   )
 
-  val kamonVersion      = "0.6.3"
+  val kamonAkkaVersion  = "0.6.6"
+  val kamonCoreVersion  = "0.6.5"
   val aspectjVersion    = "1.8.10"
   val sprayVersion      = "1.3.4"
   val akkaVersion       = "2.3.16"
 
   val aspectJ           = "org.aspectj"               %   "aspectjweaver"         % aspectjVersion
 
-  val kamonAkka         = "io.kamon"                  %%  "kamon-akka"            % kamonVersion
-  val kamonTestkit      = "io.kamon"                  %%  "kamon-testkit"         % kamonVersion
+  val kamonAkka         = "io.kamon"                  %%  "kamon-akka-2.3"        % kamonAkkaVersion
+  val kamonTestkit      = "io.kamon"                  %%  "kamon-testkit"         % kamonCoreVersion
 
   val sprayCan          = "io.spray"                  %%  "spray-can"             % sprayVersion
   val sprayRouting      = "io.spray"                  %%  "spray-routing"         % sprayVersion
