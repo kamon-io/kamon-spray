@@ -15,6 +15,24 @@ The <b>kamon-spray</b> module requires you to start your application using the A
 at startup if you failed to do so.
 
 
+### Getting Started
+
+Kamon spray module is currently available for Scala 2.10, 2.11.
+
+Supported releases and dependencies are shown below.
+
+| kamon-spray  | status | jdk  | scala            | akka   |
+|:------:|:------:|:----:|------------------|:------:|
+|  0.6.6 | stable | 1.7+, 1.8+ | 2.10, 2.11  | 2.3.x, 2.4.x |
+
+To get started with SBT, simply add the following to your `build.sbt`
+file:
+
+```scala
+libraryDependencies += "io.kamon" %% "kamon-spray" % "0.6.6"
+```
+
+
 Server Side Tools
 -----------------
 
@@ -53,4 +71,3 @@ the actual amount of time spray might take internally to resolve a request, coun
 connection timeouts and so on. If using the host level instrumentation, the measured time will include the entire time
 since the request has been received by the corresponding `HttpHostConnector` until a response is sent back
 to the requester.
-

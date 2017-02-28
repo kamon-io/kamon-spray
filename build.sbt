@@ -1,5 +1,5 @@
 /* =========================================================================================
- * Copyright © 2013-2016 the kamon project <http://kamon.io/>
+ * Copyright © 2013-2017 the kamon project <http://kamon.io/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of the License at
@@ -14,18 +14,29 @@
  */
 
 
-import AspectJ._
-import Settings._
-import Dependencies._
+ val kamonCore          = "io.kamon"                  %% "kamon-core"             % "0.6.6"
+ val kamonAkka          = "io.kamon"                  %% "kamon-core"             % "0.6.6"
+ val kamonTestkit       = "io.kamon"                  %% "kamon-testkit"          % "0.6.6"
 
-lazy val root = (project in file("."))
-  .settings(name := "kamon-spray")
-  .settings(basicSettings: _*)
-  .settings(formatSettings: _*)
-  .settings(aspectJSettings: _*)
-  .settings(
-    libraryDependencies ++=
-      compileScope(kamonAkka, akkaActor, sprayCan, sprayClient, sprayRouting) ++
-      providedScope(aspectJ) ++
-      testScope(kamonTestkit, scalatest, akkaTestKit, sprayTestkit, akkaSlf4j, logback))
+ val sprayCan           = "io.spray"                  %%  "spray-can"             % "1.3.3"
+ val sprayRouting       = "io.spray"                  %%  "spray-routing"         % "1.3.3"
+ val sprayTestkit       = "io.spray"                  %%  "spray-testkit"         % "1.3.3"
+ val sprayClient        = "io.spray"                  %%  "spray-client"          % "1.3.3"
 
+name := "kamon-spray"
+scalaVersion := "2.11.8"
+crossScalaVersions := Seq("2.10.6", "2.11.8")
+testGrouping in Test := singleTestPerJvm((definedTests in Test).value, (javaOptions in Test).value)
+libraryDependencies ++=
+  compileScope(kamonAkka, akkaDependency("actor").value, sprayCan, sprayClient, sprayRouting) ++
+  providedScope(aspectJ) ++
+  testScope(kamonTestkit, scalatest, akkaDependency("testkit").value, sprayTestkit)
+
+import sbt.Tests._
+def singleTestPerJvm(tests: Seq[TestDefinition], jvmSettings: Seq[String]): Seq[Group] =
+  tests map { test =>
+    Group(
+      name = test.name,
+      tests = Seq(test),
+      runPolicy = SubProcess(ForkOptions(runJVMOptions = jvmSettings)))
+  }
