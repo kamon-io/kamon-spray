@@ -14,9 +14,9 @@
  */
 
 
- val kamonCore          = "io.kamon"                  %% "kamon-core"             % "0.6.6"
- val kamonAkka          = "io.kamon"                  %% "kamon-core"             % "0.6.6"
- val kamonTestkit       = "io.kamon"                  %% "kamon-testkit"          % "0.6.6"
+ val kamonCore          = "io.kamon"                  %% "kamon-core"             % "0.6.7"
+ val kamonAkka          = "io.kamon"                  %% "kamon-akka-2.3"         % "0.6.7"
+ val kamonTestkit       = "io.kamon"                  %% "kamon-testkit"          % "0.6.7"
 
  val sprayCan           = "io.spray"                  %%  "spray-can"             % "1.3.3"
  val sprayRouting       = "io.spray"                  %%  "spray-routing"         % "1.3.3"
