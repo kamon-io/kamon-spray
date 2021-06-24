@@ -24,19 +24,18 @@
  val sprayClient        = "io.spray"                  %%  "spray-client"          % "1.3.3"
 
 name := "kamon-spray"
-scalaVersion := "2.11.8"
-crossScalaVersions := Seq("2.10.6", "2.11.8")
-testGrouping in Test := singleTestPerJvm((definedTests in Test).value, (javaOptions in Test).value)
-libraryDependencies ++=
-  compileScope(kamonAkka, akkaDependency("actor").value, sprayCan, sprayClient, sprayRouting) ++
-  providedScope(aspectJ) ++
-  testScope(kamonTestkit, scalatest, akkaDependency("testkit").value, sprayTestkit)
-
-import sbt.Tests._
-def singleTestPerJvm(tests: Seq[TestDefinition], jvmSettings: Seq[String]): Seq[Group] =
-  tests map { test =>
-    Group(
-      name = test.name,
-      tests = Seq(test),
-      runPolicy = SubProcess(ForkOptions(runJVMOptions = jvmSettings)))
-  }
+scalaVersion := "2.11.12"
+crossScalaVersions := Seq("2.11.12")
+libraryDependencies ++= Seq(
+  sprayCan, sprayRouting, sprayClient,
+  "io.kamon"% "kanela-agent" % "1.0.9" % "provided",
+  "com.typesafe.akka" %% "akka-actor" % "2.5.17",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.5.17",
+  "io.kamon"          %% "kamon-bundle"           % "2.2.0",
+  "io.kamon"          %% "kamon-testkit"          % "2.2.0",
+  "io.kamon"          %% "kamon-apm-reporter"          % "2.2.0",
+  scalatest,
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.17",
+sprayTestkit
+)

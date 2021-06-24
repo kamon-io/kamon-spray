@@ -18,10 +18,11 @@ package kamon.spray
 
 import _root_.spray.httpx.RequestBuilding
 import akka.testkit.TestProbe
+import kamon.instrumentation.spray.SprayInstrumentation
 import kamon.testkit.BaseKamonSpec
-import org.scalatest.concurrent.{ PatienceConfiguration, ScalaFutures }
+import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import spray.http.HttpHeaders.RawHeader
-import spray.http.{ HttpResponse, HttpRequest }
+import spray.http.{HttpRequest, HttpResponse}
 
 class SprayServerTracingSpec extends BaseKamonSpec("spray-server-tracing-spec") with RequestBuilding with ScalaFutures
     with PatienceConfiguration with TestServer {
@@ -52,7 +53,7 @@ class SprayServerTracingSpec extends BaseKamonSpec("spray-server-tracing-spec") 
       server.reply(HttpResponse(entity = "ok"))
       val response = client.expectMsgType[HttpResponse]
 
-      response.headers.count(_.name == SprayExtension.settings.traceTokenHeaderName) should be(1)
+      response.headers.count(_.name == SprayInstrumentation.settings.traceTokenHeaderName) should be(1)
 
     }
 
@@ -76,7 +77,7 @@ class SprayServerTracingSpec extends BaseKamonSpec("spray-server-tracing-spec") 
       val (connection, server) = buildClientConnectionAndServer
       val client = TestProbe()
 
-      client.send(connection, Get("/").withHeaders(RawHeader(SprayExtension.settings.traceTokenHeaderName.toLowerCase, "case-insensitive")))
+      client.send(connection, Get("/").withHeaders(RawHeader(SprayInstrumentation.settings.traceTokenHeaderName.toLowerCase, "case-insensitive")))
       server.expectMsgType[HttpRequest]
       server.reply(HttpResponse(entity = "ok"))
       val response = client.expectMsgType[HttpResponse]
@@ -86,13 +87,13 @@ class SprayServerTracingSpec extends BaseKamonSpec("spray-server-tracing-spec") 
   }
 
   def traceTokenHeader(token: String): RawHeader =
-    RawHeader(SprayExtension.settings.traceTokenHeaderName, token)
+    RawHeader(SprayInstrumentation.settings.traceTokenHeaderName, token)
 
   def enableAutomaticTraceTokenPropagation(): Unit = setIncludeTraceToken(true)
   def disableAutomaticTraceTokenPropagation(): Unit = setIncludeTraceToken(false)
 
   def setIncludeTraceToken(include: Boolean): Unit = {
-    val target = SprayExtension.settings
+    val target = SprayInstrumentation.settings
     val field = target.getClass.getDeclaredField("includeTraceTokenHeader")
     field.setAccessible(true)
     field.set(target, include)

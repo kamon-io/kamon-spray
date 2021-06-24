@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ========================================================== */
-package kamon.spray
+package kamon.instrumentation.spray
 
-import spray.routing.directives.BasicDirectives
+import kamon.Kamon
 import spray.routing._
-import kamon.trace.Tracer
+import spray.routing.directives.BasicDirectives
 
-trait KamonTraceDirectives extends BasicDirectives {
-  def traceName(name: String, tags: Map[String, String] = Map.empty): Directive0 = mapRequest { req ⇒
-    tags.foreach { case (key, value) ⇒ Tracer.currentContext.addTag(key, value) }
-    Tracer.currentContext.rename(name)
+trait TraceDirectives extends BasicDirectives {
+  def traceName(name: String, tags: Map[String, String] = Map.empty): Directive0 = mapRequest { req =>
+    val currentSpan = Kamon.currentSpan()
+    currentSpan.name(name)
+
+    tags.foreach {
+      case (key, value) => currentSpan.tag(key, value)
+    }
+
     req
   }
 }
 
-object KamonTraceDirectives extends KamonTraceDirectives
+object TraceDirectives extends TraceDirectives

@@ -18,15 +18,17 @@ package kamon.spray
 
 import akka.testkit.TestProbe
 import akka.actor.Status
+import kamon.instrumentation.spray.{ClientInstrumentationLevel, NameGenerator, SprayInstrumentation}
 import kamon.testkit.BaseKamonSpec
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 import spray.httpx.RequestBuilding
-import spray.http.{ HttpResponse, HttpRequest }
-import kamon.trace.{ Tracer, SegmentCategory }
+import spray.http.{HttpRequest, HttpResponse}
+import kamon.trace.{SegmentCategory, Tracer}
 import spray.can.Http
 import spray.http.HttpHeaders.RawHeader
 import spray.client.pipelining.sendReceive
+
 import scala.concurrent.duration._
 
 class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-instrumentation-spec") with ScalaFutures
@@ -120,7 +122,7 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
           tags = Map(
             "trace" -> "assign-name-to-segment-with-request-level-api",
             "category" -> SegmentCategory.HttpClient,
-            "library" -> SprayExtension.SegmentLibraryName))
+            "library" -> SprayInstrumentation.SegmentLibraryName))
 
         segmentMetricsSnapshot.histogram("elapsed-time").get.numberOfMeasurements should be(1)
       }
@@ -156,7 +158,7 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
           tags = Map(
             "trace" -> "assign-name-to-segment-with-request-level-api",
             "category" -> SegmentCategory.HttpClient,
-            "library" -> SprayExtension.SegmentLibraryName))
+            "library" -> SprayInstrumentation.SegmentLibraryName))
 
         segmentMetricsSnapshot.histogram("elapsed-time").get.numberOfMeasurements should be(1)
       }
@@ -193,7 +195,7 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
           tags = Map(
             "trace" -> "rename-segment-with-request-level-api",
             "category" -> SegmentCategory.HttpClient,
-            "library" -> SprayExtension.SegmentLibraryName))
+            "library" -> SprayInstrumentation.SegmentLibraryName))
 
         segmentMetricsSnapshot.histogram("elapsed-time").get.numberOfMeasurements should be(1)
       }
@@ -287,7 +289,7 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
           tags = Map(
             "trace" -> "create-segment-with-host-level-api",
             "category" -> SegmentCategory.HttpClient,
-            "library" -> SprayExtension.SegmentLibraryName))
+            "library" -> SprayInstrumentation.SegmentLibraryName))
 
         segmentMetricsSnapshot.histogram("elapsed-time").get.numberOfMeasurements should be(1)
       }
@@ -295,7 +297,7 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
   }
 
   def traceTokenHeader(token: String): RawHeader =
-    RawHeader(SprayExtension.settings.traceTokenHeaderName, token)
+    RawHeader(SprayInstrumentation.settings.traceTokenHeaderName, token)
 
   def enableInternalSegmentCollectionStrategy(): Unit = setSegmentCollectionStrategy(ClientInstrumentationLevel.HostLevelAPI)
   def enablePipeliningSegmentCollectionStrategy(): Unit = setSegmentCollectionStrategy(ClientInstrumentationLevel.RequestLevelAPI)
@@ -303,14 +305,14 @@ class ClientRequestInstrumentationSpec extends BaseKamonSpec("client-request-ins
   def disableAutomaticTraceTokenPropagation(): Unit = setIncludeTraceToken(false)
 
   def setSegmentCollectionStrategy(strategy: ClientInstrumentationLevel.Level): Unit = {
-    val target = SprayExtension.settings
+    val target = SprayInstrumentation.settings
     val field = target.getClass.getDeclaredField("clientInstrumentationLevel")
     field.setAccessible(true)
     field.set(target, strategy)
   }
 
   def setIncludeTraceToken(include: Boolean): Unit = {
-    val target = SprayExtension.settings
+    val target = SprayInstrumentation.settings
     val field = target.getClass.getDeclaredField("includeTraceTokenHeader")
     field.setAccessible(true)
     field.set(target, include)
